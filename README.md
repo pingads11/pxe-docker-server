@@ -1,9 +1,10 @@
 # pxe-docker-server
-This is PXE and dhcp enabled docker container when you dont have USB device available. It can help you boot and install linux os from internet downloading.
+This is PXE and dhcp enabled docker container when you dont have USB device available. Built on top of ubuntu 25 but should work on any *nix machine as it spins up docker containers.
+It can help you boot and install linux os from internet downloading.
 
 
 # Just update install.sh script
-the 
+then
 
 ```
 cd ~/netbootxyz
