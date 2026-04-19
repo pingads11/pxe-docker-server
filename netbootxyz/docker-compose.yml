@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  netbootxyz:
+    image: ghcr.io/netbootxyz/netbootxyz:latest
+    container_name: netbootxyz
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./config:/config
+      - ./assets:/assets
+      - ./tftpboot:/srv/tftp
+
+  dhcp:
+    image: drpayyne/docker-dnsmasq-multi-arch:latest
+    container_name: pxe-dhcp
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
+      - ./tftpboot:/srv/tftp

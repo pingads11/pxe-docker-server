@@ -1,0 +1,1 @@
+2026/04/18 14:25:39 [error] 28#28: *3 open() "/assets/favicon.ico" failed (2: No such file or directory), client: 192.168.50.106, server: , request: "GET /favicon.ico HTTP/1.1", host: "192.168.50.66", referrer: "http://192.168.50.66/"

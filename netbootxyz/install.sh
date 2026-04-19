@@ -1,0 +1,66 @@
+cd ~/netbootxyz
+
+# Create the required TFTP directory
+mkdir -p ./tftpboot
+
+# Update docker-compose to mount it
+cat > docker-compose.yml << 'EOF'
+version: '3.8'
+
+services:
+  netbootxyz:
+    image: ghcr.io/netbootxyz/netbootxyz:latest
+    container_name: netbootxyz
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./config:/config
+      - ./assets:/assets
+      - ./tftpboot:/srv/tftp
+
+  dhcp:
+    image: drpayyne/docker-dnsmasq-multi-arch:latest
+    container_name: pxe-dhcp
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
+      - ./tftpboot:/srv/tftp
+EOF
+
+######DNS masq file. Update your interface IP configs ####
+
+cat > dnsmasq.conf << 'EOF'
+port=0
+log-dhcp
+log-facility=/dev/stdout
+
+interface=enp0s3                  # ← Change if your interface name is different (check with: ip link show)
+bind-interfaces
+
+# Full DHCP server
+dhcp-range=192.168.50.100,192.168.50.200,255.255.0.0,12h
+dhcp-option=option:router,192.168.50.1
+dhcp-option=option:dns-server,8.8.8.8,1.1.1.1
+
+# TFTP settings
+enable-tftp
+tftp-root=/srv/tftp
+tftp-no-fail                      # Important: don't fail if directory is empty at start
+
+# Boot files (netboot.xyz will provide them via its own HTTP/TFTP)
+dhcp-boot=netboot.xyz.kpxe,,192.168.50.66
+
+dhcp-match=set:efi-x86_64,option:client-arch,7
+dhcp-boot=tag:efi-x86_64,netboot.xyz.efi,,192.168.50.66
+
+pxe-service=tag:bios,X86PC,"Legacy Network Boot",netboot.xyz.kpxe
+pxe-service=tag:efi-x86_64,X86-64_EFI,"UEFI Network Boot",netboot.xyz.efi
+EOF
